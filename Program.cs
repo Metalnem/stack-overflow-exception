@@ -1,8 +1,11 @@
-﻿using System;
-using System.Buffers;
-using System.Threading;
+﻿using Bond;
+using Bond.IO.Safe;
+using Bond.Protocols;
 using FlatSharp;
 using ProtoBuf;
+using System;
+using System.Buffers;
+using System.Threading;
 
 namespace StackOverflowException
 {
@@ -11,6 +14,7 @@ namespace StackOverflowException
         private const int StackSize = 100_000_000;
         private const int ProtobufNetIterations = 100_000;
         private const int FlatSharpIterations = 300_000;
+        private const int BondIterations = 200_000;
 
         public static void Main(string[] args)
         {
@@ -22,6 +26,7 @@ namespace StackOverflowException
                 {
                     case "protobufnet": ProtobufNetCrash(); break;
                     case "flatsharp": FlatSharpCrash(); break;
+                    case "bond": BondCrash(); break;
                 }
             }
             catch
@@ -40,6 +45,14 @@ namespace StackOverflowException
         {
             var data = GenerateMaliciousData(FlatSharpGenerator);
             Node.Serializer.Parse<Node>(data);
+        }
+
+        private static void BondCrash()
+        {
+            var data = GenerateMaliciousData(BondGenerator);
+            var buffer = new InputBuffer(data);
+            var reader = new SimpleBinaryReader<InputBuffer>(buffer);
+            Deserialize<Struct>.From(reader);
         }
 
         private static byte[] ProtobufNetGenerator()
@@ -71,6 +84,19 @@ namespace StackOverflowException
             var size = Node.Serializer.Write(destination, item);
 
             return destination.AsSpan(0, size).ToArray();
+        }
+
+        private static byte[] BondGenerator()
+        {
+            var n = BondIterations;
+            var bytes = new byte[8 * n];
+
+            for (int i = 0; i < n; ++i)
+            {
+                bytes[8 * i + 4] = 1;
+            }
+
+            return bytes;
         }
 
         private static byte[] GenerateMaliciousData(Func<byte[]> generator)
