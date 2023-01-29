@@ -14,6 +14,6 @@ namespace StackOverflowException
     public class Struct
     {
         [Id(0)] public uint Value;
-        [Id(1)] public Struct Child;
+        [Id(1), Bond.Type(typeof(Bond.Tag.nullable<Struct>))] public Struct Child;
     }
 }

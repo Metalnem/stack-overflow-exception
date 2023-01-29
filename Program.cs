@@ -88,15 +88,18 @@ namespace StackOverflowException
 
         private static byte[] BondGenerator()
         {
-            var n = BondIterations;
-            var bytes = new byte[8 * n];
+            Struct item = null;
 
-            for (int i = 0; i < n; ++i)
+            for (int i = 0; i < BondIterations; ++i)
             {
-                bytes[8 * i + 4] = 1;
+                item = new Struct { Value = (uint)i, Child = item };
             }
 
-            return bytes;
+            var buffer = new OutputBuffer();
+            var writer = new SimpleBinaryWriter<OutputBuffer>(buffer);
+            Serialize.To(writer, item);
+
+            return buffer.Data.ToArray();
         }
 
         private static byte[] GenerateMaliciousData(Func<byte[]> generator)
