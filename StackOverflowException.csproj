@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ProtobufNetVersion>3.0.131</ProtobufNetVersion>
+        <FlatSharpVersion>6.2.1</FlatSharpVersion>
+        <TargetFramework>net7.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FlatSharp.Compiler" Version="$(FlatSharpVersion)">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+
+        <PackageReference Include="FlatSharp.Runtime" Version="$(FlatSharpVersion)" />
+        <PackageReference Include="protobuf-net" Version="$(ProtobufNetVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <FlatSharpSchema Include="Node.fbs" />
+    </ItemGroup>
+
+</Project>

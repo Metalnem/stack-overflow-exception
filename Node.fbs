@@ -1,0 +1,8 @@
+attribute "fs_serializer";
+
+namespace StackOverflowException;
+
+table Node (fs_serializer: "Progressive") {
+   Id: string;
+   Next: Node;
+}
