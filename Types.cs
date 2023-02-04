@@ -1,4 +1,5 @@
 using Bond;
+using MessagePack;
 using ProtoBuf;
 
 namespace StackOverflowException
@@ -20,5 +21,13 @@ namespace StackOverflowException
     public class Foo
     {
         public Foo A;
+    }
+
+    [MessagePackObject]
+    public class Message
+    {
+        [Key(0)] public int Key { get; set; }
+
+        [Key(1)] public Message Value { get; set; }
     }
 }

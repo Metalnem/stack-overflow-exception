@@ -2,6 +2,7 @@
 using Bond.IO.Safe;
 using Bond.Protocols;
 using FlatSharp;
+using MessagePack;
 using Newtonsoft.Json;
 using ProtoBuf;
 using System;
@@ -18,6 +19,7 @@ namespace StackOverflowException
         private const int ProtobufNetIterations = 100_000;
         private const int FlatSharpIterations = 300_000;
         private const int BondIterations = 200_000;
+        private const int MessagePackIterations = 100_000;
 
         public static void Main(string[] args)
         {
@@ -31,6 +33,7 @@ namespace StackOverflowException
                     case "protobufnet": ProtobufNetCrash(); break;
                     case "flatsharp": FlatSharpCrash(); break;
                     case "bond": BondCrash(); break;
+                    case "messagepack": MessagePackCrash(); break;
                 }
             }
             catch
@@ -63,6 +66,12 @@ namespace StackOverflowException
             var buffer = new InputBuffer(data);
             var reader = new SimpleBinaryReader<InputBuffer>(buffer);
             Deserialize<Struct>.From(reader);
+        }
+
+        private static void MessagePackCrash()
+        {
+            var data = GenerateMaliciousData(MessagePackGenerator);
+            MessagePackSerializer.Deserialize<Message>(data);
         }
 
         private static string NewtonsoftJsonGenerator()
@@ -129,6 +138,18 @@ namespace StackOverflowException
             Serialize.To(writer, item);
 
             return buffer.Data.ToArray();
+        }
+
+        private static byte[] MessagePackGenerator()
+        {
+            Message item = null;
+
+            for (int i = 0; i < BondIterations; ++i)
+            {
+                item = new Message { Key = i, Value = item };
+            }
+
+            return MessagePackSerializer.Serialize(item);
         }
 
         private static T GenerateMaliciousData<T>(Func<T> generator)
