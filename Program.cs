@@ -7,8 +7,11 @@ using Newtonsoft.Json;
 using ProtoBuf;
 using System;
 using System.Buffers;
+using System.IO;
 using System.Text;
 using System.Threading;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace StackOverflowException
 {
@@ -20,6 +23,7 @@ namespace StackOverflowException
         private const int FlatSharpIterations = 300_000;
         private const int BondIterations = 200_000;
         private const int MessagePackIterations = 100_000;
+        private const int XmlSerializerIterations = 200_000;
 
         public static void Main(string[] args)
         {
@@ -34,6 +38,7 @@ namespace StackOverflowException
                     case "flatsharp": FlatSharpCrash(); break;
                     case "bond": BondCrash(); break;
                     case "messagepack": MessagePackCrash(); break;
+                    case "xmlserializer": XmlSerializerCrash(); break;
                 }
             }
             catch
@@ -72,6 +77,17 @@ namespace StackOverflowException
         {
             var data = GenerateMaliciousData(MessagePackGenerator);
             MessagePackSerializer.Deserialize<Message>(data);
+        }
+
+        private static void XmlSerializerCrash()
+        {
+            var data = GenerateMaliciousData(XmlSerializerGenerator);
+
+            using var stream = new MemoryStream(data);
+            using var reader = XmlReader.Create(stream);
+            var serializer = new XmlSerializer(typeof(Foo));
+
+            serializer.Deserialize(reader);
         }
 
         private static string NewtonsoftJsonGenerator()
@@ -150,6 +166,26 @@ namespace StackOverflowException
             }
 
             return MessagePackSerializer.Serialize(item);
+        }
+
+        private static byte[] XmlSerializerGenerator()
+        {
+            Foo item = null;
+
+            for (int i = 0; i < XmlSerializerIterations; ++i)
+            {
+                item = new Foo { A = item };
+            }
+
+            var serializer = new XmlSerializer(typeof(Foo));
+            var settings = new XmlWriterSettings { Indent = false };
+
+            using var stream = new MemoryStream();
+            using var writer = XmlWriter.Create(stream, settings);
+
+            serializer.Serialize(writer, item);
+
+            return stream.ToArray();
         }
 
         private static T GenerateMaliciousData<T>(Func<T> generator)
