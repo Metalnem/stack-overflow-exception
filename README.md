@@ -9,5 +9,4 @@ Examples of **StackOverflowException** triggered by malicious data. Vulnerable l
 - [MessagePack 2.1.80](https://www.nuget.org/packages/MessagePack/2.1.80)
 - [System.Xml.XmlSerializer 7.0.0](https://learn.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlserializer?view=net-7.0)
 
-Read my blog post to learn more: [How safe are .NET serialization libraries against StackOverflowException
-](https://mijailovic.net/2023/02/20/stack-overflow-exception/).
+Read my blog post to learn more: [How safe are .NET serialization libraries against StackOverflowException](https://mijailovic.net/2023/02/20/stack-overflow-exception/).
